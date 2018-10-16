@@ -19,7 +19,5 @@ class TCPClient():
     def send(self, instruction, data):
         concat_string = instruction + data
         byte_msg = bytes(concat_string, 'utf-8')
-        print(len(concat_string))
-        print(len(byte_msg))
         send_msg = struct.pack('>I', len(byte_msg)) + byte_msg
         self.client.sendall(send_msg)

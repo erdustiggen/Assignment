@@ -8,7 +8,6 @@ def main():
     try:
         while True:
             recv_message = tcpServer.receive()
-            time.sleep(1)
             if(recv_message != None):
                 # Here is where we need to do something
                 print(recv_message)
