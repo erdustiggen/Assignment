@@ -1,17 +1,20 @@
 import os, shutil
 
 
-class DirHandler():
+class DirModifier():
+	''' Class used for Creating files and folders.'''
 	def __init__(self, folder_path):
 		self.folder_path = folder_path
 
 	def makeDir(self, path):
 		path = self.folder_path + path
-		os.mkdir(path)
+		if not (os.path.exists(path)):
+			os.mkdir(path)
 
 	def removeDir(self, path):
 		path = self.folder_path + path
-		shutil.rmtree(path, ignore_errors = True)
+		if (os.path.exists(path)):
+			shutil.rmtree(path, ignore_errors = True)
 
 	def makeFile(self, path):
 		path = self.folder_path + path
@@ -23,19 +26,19 @@ class DirHandler():
 		if os.path.exists(path):
   			os.remove(path)
 		else:
-			print("The file does not exist")
+			pass
 
-class FileHandler():
+class FileModifier():
+	''' Class used for altering files.'''
 	def __init__(self, folder_path):
 		self.folder_path = folder_path
 
-	def appendToFile(self, path, data):
+	def insertToFile(self, path, data):
 		path = self.folder_path + path.decode("utf-8")
 		if (type(data) == bytes):
 			f = open(path, "wb")
 			f.write(data)
 			f.close()
-
 		else:
 			f = open(path, "w")
 			f.write(data)
@@ -43,8 +46,8 @@ class FileHandler():
 
 class CommandHandler():
 	def __init__(self, folder_path):
-		self.dirHandler = DirHandler(folder_path)
-		self.fileHandler = FileHandler(folder_path)
+		self.dirHandler = DirModifier(folder_path)
+		self.fileHandler = FileModifier(folder_path)
 
 	def handleCommand(self,recv_message):
 		if(recv_message[:3] == b'A_D'):
@@ -62,5 +65,4 @@ class CommandHandler():
 		if(recv_message[:3] == b'INS'):
 			path = recv_message[recv_message.find(b"!")+1:recv_message.find(b"|")]
 			data = recv_message[recv_message.find(b"|")+1:]
-
-			self.fileHandler.appendToFile(path, data)
+			self.fileHandler.insertToFile(path, data)

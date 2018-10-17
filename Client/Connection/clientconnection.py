@@ -10,13 +10,14 @@ class TCPClient():
 		# self.client.bind((self.server_address, self.port))
 
 
-	def setup_connection(self):
+	def setupConnection(self):
 		self.client.connect((self.server_address, self.port))
 
-	def teardown_connection(self):
+	def teardownConnection(self):
 		self.client.close()
 
-	def send(self, instruction, data):
+	def sendNames(self, instruction, data):
+		'''Function used for sending folder and file names'''
 		concat_string = instruction + data
 		print(len(concat_string))
 		byte_msg = bytes(concat_string, 'utf-8')
@@ -24,6 +25,7 @@ class TCPClient():
 		self.client.sendall(send_msg)
 
 	def sendBytes(self, data):
+		'''Function used for sending data'''
 		print(len(data))
 		send_msg = struct.pack('>I', len(data)) + data
 		self.client.sendall(send_msg)

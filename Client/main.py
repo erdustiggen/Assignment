@@ -1,45 +1,48 @@
-import time
-from Connection.clientConnection import TCPClient
-from DirectoryWatcher.directoryWatcher import DirectoryWatcher
-from FileHandler.fileHandler import FileHandler
+import time, sys
+from Connection.clientconnection import TCPClient
+from Directorywatcher.directorywatcher import DirectoryWatcher, FileHandler
 
 
+def main(argv):
 
-def main():
-	# Simple tcp connection and send
 	tcpClient = TCPClient("127.0.0.1", 2000)
-	tcpClient.setup_connection()
-	# tcpClient.send("lel", "hihi")
-	# tcpClient.teardown_connection()
+	tcpClient.setupConnection()
 
-	# Checking for directory changes
-	dirWatcher = DirectoryWatcher("/home/emil/Programming/Pexip/Assignment/DirToWatch")
+	dirWatcher = DirectoryWatcher(argv[0])
 	fileHandler = FileHandler()
 
 	try:
 		while True:
-			new_dirs, removed_dirs, new_files, removed_files = dirWatcher.check_for_updates()
+			# Checking if any file or directory have been removed or added, if so, send information to Server.
+			new_dirs, removed_dirs, new_files, removed_files = dirWatcher.checkForDirChanges()
 			if(new_dirs):
 				for data in new_dirs:
-					tcpClient.send("A_D", data[50:])
+					tcpClient.sendNames("A_D", data[50:])
 			if(removed_dirs):
 				for data in removed_dirs:
-					tcpClient.send("D_D", data[50:])
+					tcpClient.sendNames("D_D", data[50:])
 			if(new_files):
 				for data in new_files:
 					file_contents = fileHandler.getFileContents(data)
-					tcpClient.send("A_F", data[50:])
+					tcpClient.sendNames("A_F", data[50:])
 					byte_prefix = "INS".encode("utf-8") +  "!".encode("utf-8") + data[50:].encode("utf-8") + "|".encode("utf-8")
+					print(data[50:])
 					tcpClient.sendBytes(byte_prefix + file_contents)
 			if(removed_files):
 				for data in removed_files:
-					tcpClient.send("D_F", data[50:])
+					tcpClient.sendNames("D_F", data[50:])
 
-			dirWatcher.checkForChanges()
+			# Checking if any of the files have been altred, if yes, send it again.
+			changed_files = dirWatcher.checkForChanges()
+			for cf in changed_files:
+				file_contents = fileHandler.getFileContents(cf)
+				byte_prefix = "INS".encode("utf-8") +  "!".encode("utf-8") + cf[50:].encode("utf-8") + "|".encode("utf-8")
+				print(cf[50:])
+				tcpClient.sendBytes(byte_prefix + file_contents)
 			time.sleep(5)
+
 	except KeyboardInterrupt:
-		tcpClient.teardown_connection()
-		pass
+		tcpClient.teardownConnection()
 
 if __name__ == '__main__':
-	main()
+	main(sys.argv[1:])
